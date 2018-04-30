@@ -1,0 +1,5 @@
+gamedata = read.csv("steamwithscore.csv")
+gamedata$Developer <- as.factor(gamedata$Developer)
+gamedata$Publisher <- as.factor(gamedata$Publisher)
+factor(gamedata$Developer)
+str(gamedata)
