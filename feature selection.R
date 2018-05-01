@@ -39,6 +39,6 @@ treeNums = c(100,50,25,10,5,1)
 ####       that making this parameter too large will prevent plotting and the plot function
 ####       in R will throw an error.
 
-for (i in treeNums){
-  print(i)
-}
+
+#PUT NAME OF BARTmachine HERE
+investigate_var_importance(bart_machine, type = "splits", plot = TRUE, num_replicates_for_avg = 5, num_trees_bottleneck = 20, num_var_plot = 10, bottom_margin = 10)
