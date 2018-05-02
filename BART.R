@@ -1,10 +1,12 @@
 
 
-steam <- read.csv(file="steamwithscore.csv")
+steam <- read.csv(file="steam.csv")
 steam <- steam[,-which(names(steam) == "X")]
 steam <- steam[,-which(names(steam) == "ID")]
 steam <- steam[,-which(names(steam) == "Relevant")]
 steam <- steam[,-which(names(steam) == "Name")]
+steam <- steam[,-which(names(steam) == "Developer")]
+steam <- steam[,-which(names(steam) == "Publisher")]
 
 n = nrow(steam)
 
@@ -20,17 +22,22 @@ Ytrain <- steamTrain$Players
 Xtest <- steamTest[,-which(names(steamTest) == "Players")]
 Ytest <- steamTest$Players
 
+xTrain <- dataset.train[,-which(names(steam) == "Players")]
+yTrain <- dataset.train$Players
+xTest <- dataset.test[,-which(names(steam) == "Players")]
+yTest <- dataset.test$Players
 
 ###set up parameters
-numTrees = 200
-num_burn_in = 250
+numTrees = 300
+num_burn_in = 20
 
 
-ourForest = bartMachine(Xtrain,Ytrain, Xy = NULL,
+
+ourForest = bartMachine(xTrain,yTrain, Xy = NULL,
             numTrees, 
             num_burn_in,
-            num_iterations_after_burn_in = 1000,
-            alpha = 0.95, beta = 2, k = 2, q = 0.9, nu = 3,
+            num_iterations_after_burn_in = 1500,
+            alpha = 0.95, beta = 3, k = 2, q = 0.9, nu = (nrow(xTrain)-1)*(ncol(xTrain)-1),
             prob_rule_class = 0.5,
             mh_prob_steps = c(2.5, 2.5, 4)/9,
             debug_log = FALSE,
@@ -50,7 +57,7 @@ ourForest = bartMachine(Xtrain,Ytrain, Xy = NULL,
             seed = NULL,
             verbose = TRUE)
 
-testForest = bart_predict_for_test_data(ourForest,Xtest,Ytest)
+testForest = bart_predict_for_test_data(ourForest,xTest,yTest)
 
 ranX <- steam
 ranX <- ranX[,-which(names(ranX) == "HWCPU")]
@@ -74,7 +81,21 @@ X <- X[,-which(names(X) == "Publisher")]
 X <- X[,-which(names(X) == "Developer")]
 Y <- steam$Players
 
-randomForest(X,Y,xtest = NULL,ytest=NULL,nTree = 1000,
+Xtest$HWCPU[is.na(Xtest$HWCPU)] <- median(Xtrain$HWCPU, na.rm=TRUE)
+Xtest$HWGPU[is.na(Xtest$HWGPU)] <- median(Xtrain$HWGPU, na.rm=TRUE)
+Xtest$HWRAM[is.na(Xtest$HWRAM)] <- median(Xtrain$HWRAM, na.rm=TRUE)
+Xtest$HWHDD[is.na(Xtest$HWHDD)] <- median(Xtrain$HWHDD, na.rm=TRUE)
+Xtest$HWDx[is.na(Xtest$HWDx)] <- median(Xtrain$HWDx, na.rm=TRUE)
+
+Xtrain$HWCPU[is.na(Xtrain$HWCPU)] <- median(Xtrain$HWCPU, na.rm=TRUE)
+Xtrain$HWGPU[is.na(Xtrain$HWGPU)] <- median(Xtrain$HWGPU, na.rm=TRUE)
+Xtrain$HWRAM[is.na(Xtrain$HWRAM)] <- median(Xtrain$HWRAM, na.rm=TRUE)
+Xtrain$HWHDD[is.na(Xtrain$HWHDD)] <- median(Xtrain$HWHDD, na.rm=TRUE)
+Xtrain$HWDx[is.na(Xtrain$HWDx)] <- median(Xtrain$HWDx, na.rm=TRUE)
+
+Xtrain = na.roughfix(Xtrain)
+Xtest = na.roughfix(Xtest)
+
+randomForest(xTrain,yTrain,xtest = xTest,ytest=yTest,ntree = 250,
              replace = TRUE, nodesize = 10)
 
-            
